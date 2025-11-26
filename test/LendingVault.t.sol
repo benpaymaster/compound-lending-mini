@@ -79,4 +79,27 @@ contract LendingVaultTest is Test {
         }
         assertTrue(success);
     }
+
+    function testEmergencyWithdrawOwner() public {
+        vault.supply(address(token), 100 ether);
+        uint256 vaultBalanceBefore = token.balanceOf(address(vault));
+        uint256 ownerBalanceBefore = token.balanceOf(address(this));
+        vault.emergencyWithdraw();
+        uint256 vaultBalanceAfter = token.balanceOf(address(vault));
+        uint256 ownerBalanceAfter = token.balanceOf(address(this));
+        assertEq(vaultBalanceAfter, 0);
+        assertEq(ownerBalanceAfter, ownerBalanceBefore + vaultBalanceBefore);
+    }
+
+    function testEmergencyWithdrawNotOwner() public {
+        vault.supply(address(token), 100 ether);
+        vm.prank(user);
+        bool reverted = false;
+        try vault.emergencyWithdraw() {
+            // Should revert
+        } catch {
+            reverted = true;
+        }
+        assertTrue(reverted);
+    }
 }

@@ -18,7 +18,16 @@ interface IERC20 {
 
 /// @title LendingVault - Secure, auditable lending contract for ERC20 assets
 /// @notice Implements supply/withdraw logic with reentrancy protection and event logging
-contract LendingVault is IComet, ReentrancyGuard {
+import "./Ownable.sol";
+
+contract LendingVault is IComet, ReentrancyGuard, Ownable {
+    /// @notice Emergency withdraw all assets to owner (owner-only)
+    function emergencyWithdraw() external onlyOwner nonReentrant {
+        uint256 vaultBalance = asset.balanceOf(address(this));
+        require(vaultBalance > 0, "Vault empty");
+        require(asset.transfer(owner, vaultBalance), "Transfer failed");
+    }
+
     IERC20 public immutable asset;
     mapping(address => uint256) public balances;
 
