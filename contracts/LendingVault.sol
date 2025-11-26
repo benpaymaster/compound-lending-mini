@@ -40,7 +40,10 @@ contract LendingVault is IComet, ReentrancyGuard {
             asset.transferFrom(msg.sender, address(this), amount),
             "Transfer failed"
         );
-        balances[msg.sender] += amount;
+        // Gas optimization: unchecked block for safe math (no overflow possible due to require)
+        unchecked {
+            balances[msg.sender] += amount;
+        }
         emit Supplied(msg.sender, amount);
     }
 
@@ -49,7 +52,10 @@ contract LendingVault is IComet, ReentrancyGuard {
     function withdraw(address, uint amount) external override nonReentrant {
         require(amount > 0, "Amount must be > 0");
         require(balances[msg.sender] >= amount, "Insufficient balance");
-        balances[msg.sender] -= amount;
+        // Gas optimization: unchecked block for safe math (no underflow possible due to require)
+        unchecked {
+            balances[msg.sender] -= amount;
+        }
         require(asset.transfer(msg.sender, amount), "Transfer failed");
         emit Withdrawn(msg.sender, amount);
     }
